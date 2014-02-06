@@ -1,4 +1,4 @@
 ppm-c
 =====
 
-Prediction by Partial Matching algorithm written in C. Based on /renp/ppm. Has some additional modifications for unrelated experiments.
+C implementation of various PPM variants, with some modifications for experimental stylometric purposes.
