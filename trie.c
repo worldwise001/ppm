@@ -121,7 +121,9 @@ void __trie_print_node(trie_t * trie, node_i node, unsigned int level) {
 }
 
 node_i __node_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol) {
-    node_i child = PTR(node)->down;
+    node_i child, tmp;
+
+    child = PTR(node)->down;
     if (child == 0) {
         // if there are no children nodes, then create one
         child = __node_malloc(trie->list);
@@ -143,10 +145,11 @@ node_i __node_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol) {
         }
     }
     // if there are children nodes but none of them are the ones we want, create one
-    PTR(child)->right = __node_malloc(trie->list);
-    PTR(PTR(child)->right)->symbol = symbol;
-    PTR(PTR(child)->right)->count = 1;
-    return PTR(child)->right;
+    tmp = __node_malloc(trie->list);
+    PTR(tmp)->symbol = symbol;
+    PTR(tmp)->count = 1;
+    PTR(child)->right = tmp;
+    return tmp;
 }
 
 unsigned int __trie_get_node_level(trie_t * trie, node_i node) {
