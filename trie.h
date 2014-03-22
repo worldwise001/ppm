@@ -36,6 +36,7 @@ struct __nodelist_struct__ {
 
 struct __trie_struct__ {
     unsigned int order;
+    symbol_t * context;
     node_i root;
     node_i base_ptr;
     nodelist_t * list;
@@ -56,13 +57,16 @@ int trie_dump(trie_t * trie, char * filename);
 int trie_load(trie_t * trie, char * filename);
 
 // Updater function
-fraction_t trie_add(trie_t * trie, symbol_t symbol);
+void trie_add(trie_t * trie, symbol_t symbol);
+
+// Gets probabilities for a symbol given a context
 
 // Internal functions
 void __trie_print_node(trie_t * trie, node_i node, unsigned int level);
-node_i __node_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol);
+node_i __node_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol, fraction_t * probability);
 unsigned int __trie_get_node_level(trie_t * trie, node_i node);
 
+// nodelist internal functions
 nodelist_t * __nodelist_create();
 void __nodelist_extend(nodelist_t * nodelist);
 void __nodelist_free(nodelist_t * nodelist);
