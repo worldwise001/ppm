@@ -3,6 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 // Initializer and destroyer functions
 
@@ -10,10 +15,14 @@ trie_t * trie_create(unsigned int order) {
     // Allocate memory for the actual trie
     trie_t * trie = malloc(sizeof(trie_t));
     memset(trie, 0, sizeof(trie_t));
-    
-    // Allocate memory for the root
-    trie->root = malloc(sizeof(node_t));
-    memset(trie->root, 0, sizeof(node_t));
+
+    // Initialize the nodelist
+    trie->list = __nodelist_create();    
+
+    // Initialize the root node
+    trie->root = __node_malloc(trie->list);
+
+    // Set the base_ptr to root
     trie->base_ptr = trie->root;
 
     // Set the order
@@ -24,28 +33,30 @@ trie_t * trie_create(unsigned int order) {
 }
 
 void trie_destroy(trie_t * trie) {
-    __trie_destroy_node(trie->root);
+    __nodelist_free(trie->list);
     free(trie);
 }
 
 // State functions
 void trie_print(trie_t * trie) {
-    __trie_print_node(trie->root, 0);
+    __trie_print_node(trie, trie->root, 0);
 }
 
 int trie_dump(trie_t * trie, char * filename) {
-    printf("Not implemented\n");
-    return 1;
+    return 0;
 }
 
 int trie_load(trie_t * trie, char * filename) {
-    printf("Not implemented\n");
-    return 1;
+//    int fd;
+//    nodelist_t * nl;
+
+    return 0;
 }
 
 // Updater function
-void trie_add(trie_t * trie, symbol_t symbol) {
-    node_t *x, *y, *z, *s, *a, *b;
+fraction_t trie_add(trie_t * trie, symbol_t symbol) {
+    node_i x, y, z, s, a, b, f;
+    fraction_t fraction;
 
     // step 0
     x = trie->base_ptr;                              // follow the base pointer to node x
@@ -56,95 +67,136 @@ void trie_add(trie_t * trie, symbol_t symbol) {
         // this only applies in the early trie initialization stages
 
         y = x;                                       // assignment from x to y for readability
-        s = __node_getadd_symbol_child(y, symbol);   // add s as a new child of y, meaning we can grow the tree
+        // add s as a new child of y, meaning we can grow the tree
+        s = __node_getadd_symbol_child(trie, y, symbol);
         if (trie->base_ptr == trie->root) {
-            s->vine = trie->root;
+            PTR(s)->vine = trie->root;
         }
         trie->base_ptr = s;                          // set the base to point to s
-        a = s;                                       // yeah let's just follow the paper assigment
+        a = s;                                       
     } else {
         // if the base pointer IS at the height of the tree, then we don't actually want to be growing the trie at all
         // so we follow the vine pointer from the base pointer to start appending
 
-        y = x->vine;                                 // follow the vine pointer from x to y
-        s = __node_getadd_symbol_child(y, symbol);   // add s as a new child node of y OR increment the count by 1
+        y = PTR(x)->vine;                                 // follow the vine pointer from x to y
+        // add s as a new child node of y OR increment the count by 1
+        s = __node_getadd_symbol_child(trie, y, symbol);
         trie->base_ptr = s;                          // set the base to point to s
         a = s;
     }
+    f = y;
 
     // step 2
-    while (y->vine != NULL) {                        // repeat while y has a vine
-        z = y->vine;                                 // follow the vine pointer from y to z
-        s = __node_getadd_symbol_child(z, symbol);   // add s as a new child node of z OR increment the count by 1
+    while (PTR(y)->vine != 0) {                        // repeat while y has a vine
+        z = PTR(y)->vine;                                 // follow the vine pointer from y to z
+        // add s as a new child node of z OR increment the count by 1
+        s = __node_getadd_symbol_child(trie, z, symbol);
         b = s;
-        a->vine = b;
+        PTR(a)->vine = b;
         a = b;                                       // set a to b (shift context)
         y = z;                                       // set y to z (shift context)
     }
 
-    if (a->vine == NULL) {
-        a->vine = trie->root;                        // add a vine back to root
+    if (PTR(a)->vine == 0) {
+        PTR(a)->vine = trie->root;                        // add a vine back to root
     }
+
+    f = PTR(f)->down;
+    fraction.numerator = PTR(trie->base_ptr)->count;
+    for (fraction.denominator = 0; f != 0; fraction.denominator += PTR(f)->count, f = PTR(f)->right);
+    return fraction;
 }
 
-// Internal functions
-void __trie_destroy_node(node_t * node) {
-    if (node == NULL)
-        return;
-    __trie_destroy_node(node->down);
-    __trie_destroy_node(node->right);
-    free(node);
-}
-
-void __trie_print_node(node_t * node, unsigned int level) {
-    if (node == NULL) {
+void __trie_print_node(trie_t * trie, node_i node, unsigned int level) {
+    if (node == 0) {
         printf("\n");
         return;
     }
-    printf("%s-- (%c,%03d) ", (level==0?"  ":"|"), node->symbol, node->count);
-    __trie_print_node(node->down, level+1);
+    printf("%s-- (%c,%03d) ", (level==0?"  ":"|"), PTR(node)->symbol, PTR(node)->count);
+    __trie_print_node(trie, PTR(node)->down, level+1);
     for (unsigned int i = 0; i < level; i++) {
         printf("%12s", " ");
     }
-    __trie_print_node(node->right, level);
+    __trie_print_node(trie, PTR(node)->right, level);
 }
 
-node_t * __node_getadd_symbol_child(node_t * node, symbol_t symbol) {
-    node_t * child = node->down;
-    if (child == NULL) {
+node_i __node_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol) {
+    node_i child = PTR(node)->down;
+    if (child == 0) {
         // if there are no children nodes, then create one
-        child = malloc(sizeof(node_t));
-        memset(child, 0, sizeof(node_t));
-        node->down = child;
-        child->symbol = symbol;
-        child->count = 1;
+        child = __node_malloc(trie->list);
+        PTR(node)->down = child;
+        PTR(child)->symbol = symbol;
+        PTR(child)->count = 1;
         return child;
     }
-    if (child->symbol == symbol) {
+    if (PTR(child)->symbol == symbol) {
         // if the first child node is in fact the one we want, return it
-        child->count++;
+        PTR(child)->count++;
         return child;
     }
-    for (; child->right != NULL; child = child->right) {
+    for (; PTR(child)->right != 0; child = PTR(child)->right) {
         // search for the child node we want and return it
-        if (child->right->symbol == symbol) {
-            child->right->count++;
-            return child->right;
+        if (PTR(PTR(child)->right)->symbol == symbol) {
+            PTR(PTR(child)->right)->count++;
+            return PTR(child)->right;
         }
     }
     // if there are children nodes but none of them are the ones we want, create one
-    child->right = malloc(sizeof(node_t));
-    memset(child->right, 0, sizeof(node_t));
-    child->right->symbol = symbol;
-    child->right->count = 1;
-    return child->right;
+    PTR(child)->right = __node_malloc(trie->list);
+    PTR(PTR(child)->right)->symbol = symbol;
+    PTR(PTR(child)->right)->count = 1;
+    return PTR(child)->right;
 }
 
-unsigned int __trie_get_node_level(trie_t * trie, node_t * node) {
+unsigned int __trie_get_node_level(trie_t * trie, node_i node) {
     unsigned int count = 0;
-    if (node->vine == NULL) {
+    if (PTR(node)->vine == 0) {
         return 0;
     }
-    for (; trie->root != node; node = node->vine, count++);
+    for (; trie->root != node; node = PTR(node)->vine, count++);
     return count;
+}
+
+nodelist_t * __nodelist_create() {
+    nodelist_t * nodelist;
+    nodelist = malloc(sizeof(nodelist_t));
+    memset(nodelist, 0, sizeof(nodelist_t));
+    nodelist->data = malloc(sizeof(node_t)*NODE_SIZE);
+    nodelist->ptr = 1;
+    nodelist->size = NODE_SIZE;
+    return nodelist;
+}
+
+void __nodelist_extend(nodelist_t * nodelist) {
+    node_t * data, *odata;
+
+    if ( nodelist->ptr >= nodelist->size ) {
+        odata = nodelist->data;
+        nodelist->data = NULL;
+
+        data = realloc(odata, sizeof(node_t)*(nodelist->size+NODE_SIZE));
+        if (data == NULL) {
+            printf("Error expanding node tree\n");
+            exit(1);
+        }
+        nodelist->data = data;
+        nodelist->size += NODE_SIZE;
+    }
+}
+
+void __nodelist_free(nodelist_t * nodelist) {
+    free(nodelist->data);
+    free(nodelist);
+}
+
+node_i __node_malloc(nodelist_t * nodelist) {
+    node_i node;
+    node_t * nodeptr;
+    __nodelist_extend(nodelist);
+    node = nodelist->ptr;
+    nodelist->ptr++;
+    nodeptr = nodelist->data + node;
+    memset(nodeptr, 0, sizeof(node_t));
+    return node;
 }
