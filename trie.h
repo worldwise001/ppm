@@ -16,14 +16,14 @@ typedef struct __context_entry_struct__ context_entry_t;
 // Actual type definitions
 
 struct __context_entry_struct__ {
-    symbol_t symbol;                  // symbol seen
+    symbol_t symbol;                  // symbol history
     fraction_t probability;           // probability of symbol to be encoded
+    unsigned char escape:1;           // bitfield that shows whether an escape was thrown in this context
 };
 
 struct __context_struct__ {
     context_entry_t * entries;        // array context entries
-    unsigned long * escape_counts;    // array of escape counts
-                                      // (idx = context level)
+    unsigned long * escape_counts;     // escape counts for each context
     fraction_t avg_escape_count;      // average escape count per character
 };
 

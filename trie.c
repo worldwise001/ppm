@@ -58,14 +58,23 @@ void trie_print(trie_t * trie) {
 void trie_print_state(trie_t * trie) {
     context_t * context = &(trie->context);
     symbol_t symbol = context->entries[0].symbol;
-    printf("0x%02X: ", symbol);
-    printf("[ 0x%02X | %.4f ] ", symbol, 1.0*trie->character_probability.numerator/trie->character_probability.denominator);
+
+    printf("%c: ", symbol);
+    printf("[ %c | %.4f ] ", symbol, 1.0*trie->character_probability.numerator/trie->character_probability.denominator);
     for (unsigned int i = 0; i < trie->order; i++) {
         context_entry_t * entry = &(context->entries[i]);
         if (entry->probability.denominator == 0) {
             printf("[ - | - ] ");
         } else {
-            printf("[ 0x%02X | %.4f ] ", (entry->symbol==0?0:entry->symbol), 1.0*entry->probability.numerator/entry->probability.denominator);
+            printf("[ ");
+            if (entry->escape) {
+                printf("ESC");
+            } else {
+                for (unsigned int j = i; j > 0; j--)
+                    printf("%c", (context->entries[j].symbol==0?' ':context->entries[j].symbol));
+                printf("->%c", symbol);
+            }
+            printf(" | %.4f ] ", 1.0*entry->probability.numerator/entry->probability.denominator);
         }
     }
     printf("\n");
@@ -85,12 +94,12 @@ void trie_clear_context(trie_t * trie) {
     for (unsigned int i = 0; i < trie->order; i++) {
         context->entries[i].probability.numerator = 0;
         context->entries[i].probability.denominator = 0;
+        context->entries[i].escape = 0;
     }
 }
 
 void trie_clear_escapes(trie_t * trie) {
     memset(trie->context.escape_counts, 0, sizeof(unsigned long) * trie->order);
-    memset(&(trie->context.avg_escape_count), 0, sizeof(fraction_t));
 }
 
 fraction_t trie_get_probability_encoding(trie_t * trie) {
@@ -189,16 +198,16 @@ void __trie_print_node(trie_t * trie, node_i node, unsigned int level) {
         return;
     }
     // black magic here
-    printf("%s-- (0x%02X,%03lu) ", (level==0?"  ":"|"), PTR(node)->symbol, PTR(node)->count);
-    printf("|-- ( ESC,%03lu)\n", PTR(node)->child_escape_count);
+    printf("%s-- (%3c,%03lu) ", (level==0?" ":"|"), (node==1?' ':PTR(node)->symbol), PTR(node)->count);
+    printf("|-- (ESC,%03lu)\n", PTR(node)->child_escape_count);
     for (unsigned int i = 0; i < level+1; i++) {
-        printf("%15s", " ");
+        printf("%14s", " ");
     }
     // print all the children nodes on one line
     __trie_print_node(trie, PTR(node)->down, level+1);
     // more black magic here
     for (unsigned int i = 0; i < level; i++) {
-        printf("%15s", " ");
+        printf("%14s", " ");
     }
     // print all sibling nodes on new lines
     __trie_print_node(trie, PTR(node)->right, level);
@@ -213,6 +222,7 @@ void __trie_update_context(trie_t * trie, symbol_t symbol) {
     context->entries[0].symbol = symbol;
     context->entries[0].probability.numerator = 0;
     context->entries[0].probability.denominator = 0;
+    context->entries[0].escape = 0;
 }
 
 void __trie_update_probabilities(trie_t * trie, node_i parent, symbol_t symbol) {
@@ -230,13 +240,13 @@ void __trie_update_probabilities(trie_t * trie, node_i parent, symbol_t symbol) 
             escape_probability.denominator = 1;
             escape_probability.numerator = 1;
         }
-        trie->context.entries[order].symbol = 0;
+        trie->context.entries[order].escape = 1;
         trie->context.entries[order].probability = escape_probability;
         trie->context.escape_counts[order]++;
         trie->context.avg_escape_count.numerator++;
         PTR(parent)->child_escape_count++;
     } else {
-        trie->context.entries[order].symbol = symbol;
+        trie->context.entries[order].escape = 0;
         trie->context.entries[order].probability = symbol_probability;
     }
 }
