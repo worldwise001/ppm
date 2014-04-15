@@ -100,6 +100,7 @@ void trie_clear_context(trie_t * trie) {
 
 void trie_clear_escapes(trie_t * trie) {
     memset(trie->context.escape_counts, 0, sizeof(unsigned long) * trie->order);
+    memset(&(trie->context.avg_escape_count), 0, sizeof(fraction_t));
 }
 
 fraction_t trie_get_probability_encoding(trie_t * trie) {
@@ -117,12 +118,12 @@ fraction_t trie_get_probability_encoding(trie_t * trie) {
         }
         probability.numerator *= entry->probability.numerator;
         probability.denominator *= entry->probability.denominator;
-        if (entry->symbol != 0) {
+        if (entry->escape == 0) {
             break;
         }
     }
 
-    if (i == -1 && (entry->probability.denominator == 0 || entry->symbol == 0)) {
+    if (i == -1 && (entry->probability.denominator == 0 || entry->escape == 1)) {
         probability.numerator *= trie->character_probability.numerator;
         probability.denominator *= trie->character_probability.denominator;
     }
