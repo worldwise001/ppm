@@ -1,6 +1,7 @@
 #include "data.h"
 
 #include <string.h>
+#include <stdio.h>
 
 fraction_t calculate_char_probability(char * text) {
     unsigned char test[256];
@@ -10,8 +11,9 @@ fraction_t calculate_char_probability(char * text) {
     memset(test, 0, sizeof(char)*256);
     memset(&probability, 0, sizeof(fraction_t));
 
-    while (*text != '\0') {
-        test[(int)(*text)] = 1;
+    while ((*text) != '\0') {
+        i = 0x00FF && (*text);
+        test[i] = 1;
         text++;
     }
 
