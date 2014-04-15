@@ -96,6 +96,10 @@ int main(int argc, char** argv) {
         free(path);
         path = NULL;
     }
+    closedir(dir);
+
+    known_size++;
+    unknown_size++;
 
     total = malloc(known_size+unknown_size+2);
     sprintf(total, "%s\n%s", known, unknown);
@@ -108,7 +112,8 @@ int main(int argc, char** argv) {
 
     t1 = split_text(known);
     t2 = split_text(unknown);
-   
+    
+/*
     for (ptr = t1; *ptr != NULL; ptr++) {
         printf("known text is %lu bytes\n", strlen(*ptr));
     }
@@ -116,72 +121,42 @@ int main(int argc, char** argv) {
     for (ptr = t2; *ptr != NULL; ptr++) {
         printf("unknown text is %lu bytes\n", strlen(*ptr));
     }
-
-    for (ptr = t1; *ptr != NULL; ptr++) {
-        int train_size = 0;
-        for (char ** ptr2 = t1; *ptr2 != NULL; ptr2++) {
-            if (ptr2 != ptr)
-                train_size += strlen(*ptr2);
-        }
-        char * train_chunk = malloc(train_size+1), * chunk_ptr = train_chunk;
-        for (char ** ptr2 = t1; *ptr2 != NULL; ptr2++) {
-            if (ptr2 != ptr) {
-                sprintf(chunk_ptr, "%s", *ptr2);
-                chunk_ptr += strlen(*ptr2);
-            }
-        }
-        trie_t * trie = trie_create(order);
-        trie->character_probability = char_pr;
-        double entropy = 0;
-        fraction_t pr;
-        for (unsigned i = 0; i < strlen(train_chunk); i++) {
-            trie_add(trie, train_chunk[i]);
-        }
-        for (unsigned i = 0; i < strlen(*ptr); i++) {
-            trie_add(trie, (*ptr)[i]);
-            pr = trie_get_probability_encoding(trie);
-            entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
-        }
-        printf("Known chunk entropy: %.4f\n", entropy);
-        trie_destroy(trie);
-        free(train_chunk);
-    }
-
-    for (ptr = t2; *ptr != NULL; ptr++) {
-        int train_size = 0;
-        for (char ** ptr2 = t2; *ptr2 != NULL; ptr2++) {
-            if (ptr2 != ptr)
-                train_size += strlen(*ptr2);
-        }
-        char * train_chunk = malloc(train_size+1), * chunk_ptr = train_chunk;
-        for (char ** ptr2 = t2; *ptr2 != NULL; ptr2++) {
-            if (ptr2 != ptr) {
-                sprintf(chunk_ptr, "%s", *ptr2);
-                chunk_ptr += strlen(*ptr2);
-            }
-        }
-        trie_t * trie = trie_create(order);
-        trie->character_probability = char_pr;
-        double entropy = 0;
-        fraction_t pr;
-        for (unsigned i = 0; i < strlen(train_chunk); i++) {
-            trie_add(trie, train_chunk[i]);
-        }
-        for (unsigned i = 0; i < strlen(*ptr); i++) {
-            trie_add(trie, (*ptr)[i]);
-            pr = trie_get_probability_encoding(trie);
-            entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
-        }
-        printf("Unknown chunk entropy: %.4f\n", entropy);
-        trie_destroy(trie);
-        free(train_chunk);
-    }
+*/
+    printf("Type, Same, Cross\n");
 
     for (ptr = t1; *ptr != NULL; ptr++) {
         trie_t * trie;
         double entropy = 0;
         fraction_t pr;
 
+        int train_size = 0;
+        for (char ** ptr2 = t1; *ptr2 != NULL; ptr2++) {
+            if (ptr2 != ptr)
+                train_size += strlen(*ptr2);
+        }
+        char * train_chunk = malloc(train_size+1), * chunk_ptr = train_chunk;
+        for (char ** ptr2 = t1; *ptr2 != NULL; ptr2++) {
+            if (ptr2 != ptr) {
+                sprintf(chunk_ptr, "%s", *ptr2);
+                chunk_ptr += strlen(*ptr2);
+            }
+        }
+        trie = trie_create(order);
+        trie->character_probability = char_pr;
+        entropy = 0;
+        for (unsigned i = 0; i < strlen(train_chunk); i++) {
+            trie_add(trie, train_chunk[i]);
+        }
+        for (unsigned i = 0; i < strlen(*ptr); i++) {
+            trie_add(trie, (*ptr)[i]);
+            pr = trie_get_probability_encoding(trie);
+            entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
+        }
+        printf("K, %.4f,", entropy);
+        trie_destroy(trie);
+        free(train_chunk);
+
+        entropy = 0;
         trie = trie_create(order);
         trie->character_probability = char_pr;
         for (unsigned i = 0; i < strlen(unknown); i++) {
@@ -192,7 +167,7 @@ int main(int argc, char** argv) {
             pr = trie_get_probability_encoding(trie);
             entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
         }
-        printf("Known chunk entropy (trained on unknown): %.4f\n", entropy);
+        printf(" %.4f\n", entropy);
         trie_destroy(trie);
     }
 
@@ -201,6 +176,34 @@ int main(int argc, char** argv) {
         double entropy = 0;
         fraction_t pr;
 
+        int train_size = 0;
+        for (char ** ptr2 = t2; *ptr2 != NULL; ptr2++) {
+            if (ptr2 != ptr)
+                train_size += strlen(*ptr2);
+        }
+        char * train_chunk = malloc(train_size+1), * chunk_ptr = train_chunk;
+        for (char ** ptr2 = t2; *ptr2 != NULL; ptr2++) {
+            if (ptr2 != ptr) {
+                sprintf(chunk_ptr, "%s", *ptr2);
+                chunk_ptr += strlen(*ptr2);
+            }
+        }
+        trie = trie_create(order);
+        trie->character_probability = char_pr;
+        entropy = 0;
+        for (unsigned i = 0; i < strlen(train_chunk); i++) {
+            trie_add(trie, train_chunk[i]);
+        }
+        for (unsigned i = 0; i < strlen(*ptr); i++) {
+            trie_add(trie, (*ptr)[i]);
+            pr = trie_get_probability_encoding(trie);
+            entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
+        }
+        printf("U, %.4f,", entropy);
+        trie_destroy(trie);
+        free(train_chunk);
+
+        entropy = 0;
         trie = trie_create(order);
         trie->character_probability = char_pr;
         for (unsigned i = 0; i < strlen(known); i++) {
@@ -211,9 +214,20 @@ int main(int argc, char** argv) {
             pr = trie_get_probability_encoding(trie);
             entropy -= (1.0*pr.numerator/pr.denominator)*log(1.0*pr.numerator/pr.denominator);
         }
-        printf("Unknown chunk entropy (trained on known): %.4f\n", entropy);
+        printf(" %.4f\n", entropy);
         trie_destroy(trie);
     }
+
+    for (ptr = t1; *ptr != NULL; ptr++) {
+        free(*ptr);
+    }
+
+    for (ptr = t2; *ptr != NULL; ptr++) {
+        free(*ptr);
+    }
+
+    free(t1);
+    free(t2);
 
     free(known);
     free(unknown);
