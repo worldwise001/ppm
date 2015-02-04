@@ -22,7 +22,7 @@ void __nodelist_extend(nodelist_t * nodelist) {
         odata = nodelist->data;
         nodelist->data = NULL;
 
-        data = realloc(odata, sizeof(node_t)*(nodelist->size+NODE_SIZE));
+        data = realloc(odata, sizeof(node_t)*((nodelist->size)+NODE_SIZE));
         if (data == NULL) {
             printf("Error expanding node tree\n");
             exit(1);

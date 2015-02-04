@@ -180,6 +180,7 @@ void trie_add(trie_t * trie, symbol_t symbol) {
     __trie_update_probabilities(trie, y, symbol);
     // add s as a new child node of y OR increment the count by 1
     s = __trie_getadd_symbol_child(trie, y, symbol);
+    root = trie->list->data;         // in case root got stale after malloc
     trie->base_ptr = s;              // set the base to point to s
     a = s;
 
@@ -189,6 +190,7 @@ void trie_add(trie_t * trie, symbol_t symbol) {
         __trie_update_probabilities(trie, z, symbol);
         // add s as a new child node of z OR increment the count by 1
         s = __trie_getadd_symbol_child(trie, z, symbol);
+        root = trie->list->data;         // in case root got stale after malloc
         b = s;
         PTR(a)->vine = b;                // add a vine to the previous node
         a = b;                           // set a to b (shift context)
@@ -278,6 +280,7 @@ node_i __trie_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol) {
     if (child == 0) {
         // if there are no children nodes, then create one
         child = __node_malloc(trie->list);
+        root = trie->list->data; // in case root is stale after malloc
         PTR(node)->down = child;
         PTR(child)->symbol = symbol;
         PTR(child)->count = 1;
@@ -308,6 +311,7 @@ node_i __trie_getadd_symbol_child(trie_t * trie, node_i node, symbol_t symbol) {
     // if not, we need to create a new sibling
     // create the node and set the fields
     result = __node_malloc(trie->list);
+    root = trie->list->data; // in case root is stale after malloc
     PTR(result)->symbol = symbol;
     PTR(result)->count = 1;
     // add the sibling

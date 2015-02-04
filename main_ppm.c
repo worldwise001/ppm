@@ -76,7 +76,7 @@ trie_t * train(char * train_directory, size_t * corpus_size, double * train_bits
     return trie;
 }
 
-void test(char * test_directory, char * output_directory, trie_t * trie) {
+void test(char * test_directory, char * output_path, trie_t * trie) {
     DIR * dir = opendir(test_directory);
     if (dir == NULL) {
         fprintf(stderr, "Unable to open training directory: %s\n", strerror(errno));
@@ -89,11 +89,7 @@ void test(char * test_directory, char * output_directory, trie_t * trie) {
     char * corpus = NULL, * path = NULL;
     size_t corpus_size = 0;
 
-    path = malloc(strlen(output_directory) + 1 + 10 + 1);
-    sprintf(path, "%s/output.log", output_directory);
-    output = fopen(path, "w");
-    free(path);
-    path = NULL;
+    output = fopen(output_path, "w");
 
     while ((dir_entry = readdir(dir)) != NULL) {
         if (strcmp(dir_entry->d_name, ".") == 0 || strcmp(dir_entry->d_name, "..") == 0)
