@@ -23,5 +23,6 @@ nodelist_t * __nodelist_create();
 void __nodelist_extend(nodelist_t * nodelist);
 void __nodelist_free(nodelist_t * nodelist);
 node_i __node_malloc(nodelist_t * nodelist);
+nodelist_t * __nodelist_duplicate(nodelist_t * nodelist);
 
 #endif // PPM_NODELIST_H_

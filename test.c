@@ -13,6 +13,10 @@ int main(int argc, char** argv) {
         double bits = trie_get_bit_encoding(trie);
         printf("%c encoded with probability %lu/%lu or %5.2f bits\n", ppm_test_str[i], pr.numerator, pr.denominator, bits);
     }
+    trie_print_state(trie);
+    trie_t * dup = trie_duplicate(trie);
     trie_destroy(trie);
+    trie_print_state(dup);
+    trie_destroy(dup);
     return 0;
 }

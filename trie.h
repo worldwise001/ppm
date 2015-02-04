@@ -39,6 +39,7 @@ struct __trie_struct__ {
 // Initializer and destroyer functions
 trie_t * trie_create(unsigned int order);
 void trie_destroy(trie_t * trie);
+trie_t * trie_duplicate(trie_t * trie);
 
 // State functions
 void trie_print(trie_t * trie);

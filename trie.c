@@ -50,6 +50,20 @@ void trie_destroy(trie_t * trie) {
     free(trie);
 }
 
+trie_t * trie_duplicate(trie_t * trie) {
+    trie_t * dup = malloc(sizeof(trie_t));
+    memcpy(dup, trie, sizeof(trie_t));
+
+    dup->context.entries = malloc(sizeof(context_entry_t) * (dup->order));
+    memcpy(dup->context.entries, trie->context.entries, sizeof(context_entry_t) * (dup->order));
+    dup->context.escape_counts = malloc(sizeof(unsigned long) * (dup->order));
+    memcpy(dup->context.escape_counts, trie->context.escape_counts, sizeof(unsigned long) * (dup->order));
+
+    dup->list = __nodelist_duplicate(trie->list);
+
+    return dup;
+}
+
 // State functions
 void trie_print(trie_t * trie) {
     __trie_print_node(trie, trie->root, 0);

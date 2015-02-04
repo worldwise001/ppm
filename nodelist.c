@@ -47,3 +47,12 @@ node_i __node_malloc(nodelist_t * nodelist) {
     memset(nodeptr, 0, sizeof(node_t));
     return node;
 }
+
+nodelist_t * __nodelist_duplicate(nodelist_t * nodelist) {
+    nodelist_t * dup;
+    dup = malloc(sizeof(nodelist_t));
+    memcpy(dup, nodelist, sizeof(nodelist_t));
+    dup->data = malloc(sizeof(node_t)*(nodelist->size));
+    memcpy(dup->data, nodelist->data, sizeof(node_t)*(nodelist->size));
+    return dup;
+}
