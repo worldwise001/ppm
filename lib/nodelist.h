@@ -19,7 +19,7 @@ struct __nodelist_struct__ {
 };
 
 // Internal nodelist functions
-nodelist_t * __nodelist_create();
+nodelist_t * __nodelist_create(void);
 void __nodelist_extend(nodelist_t * nodelist);
 void __nodelist_free(nodelist_t * nodelist);
 node_i __node_malloc(nodelist_t * nodelist);

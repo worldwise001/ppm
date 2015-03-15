@@ -3,6 +3,7 @@ from distutils.core import setup, Extension
 module1 = Extension('ppm',
                     sources = ['../lib/data.c', '../lib/node.c', '../lib/nodelist.c', '../lib/trie.c',
                                'ppm.c', 'trie.c', 'trie_members.c', 'trie_methods.c'],
+                    extra_compile_args = ['-Werror', '-Wall', '--std=c99'],
                     include_dirs = ['../lib'])
 
 setup (name = 'ppm',

@@ -124,6 +124,7 @@ fraction_t trie_get_probability_encoding(trie_t * trie) {
 
     probability.numerator = 1;
     probability.denominator = 1;
+    entry = NULL;
 
     for (i = (trie->order - 1); i >= 0; i--) {
         entry = &(trie->context.entries[i]);
