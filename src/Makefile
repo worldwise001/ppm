@@ -25,4 +25,4 @@ test: $(OBJECTS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm *.o
+	rm *.o pan13 bobicev ppm test

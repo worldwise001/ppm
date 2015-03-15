@@ -1,7 +1,7 @@
 all: ppm.so
 
 clean:
-	rm -r build
+	rm -r build ppm.so
 
 ppm.so:
 	python setup.py build
