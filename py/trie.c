@@ -7,7 +7,6 @@ PyObject * Trie_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (self != NULL) {
         self->trie = NULL;
     }
-    printf("trie_new\n");
     return (PyObject *)self;
 }
 
@@ -15,7 +14,6 @@ int Trie_init(Trie *self, PyObject *args, PyObject *kwds)
 {
     unsigned int order = 5;
     static char *kwlist[] = {"order", NULL};
-    printf("trie_init\n");
 
     if (! PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &order)) {
         PyErr_Print();
