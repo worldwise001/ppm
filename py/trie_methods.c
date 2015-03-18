@@ -128,20 +128,38 @@ PyObject * Trie___setstate__(Trie *self, PyObject *args, PyObject *keywds)
     self->trie->list->data = malloc(size*sizeof(node_t));
     tmp = PyDict_GetItemString(tmp1, "data");
     data = PyByteArray_AsString(tmp);
-    memcpy(data, self->trie->list->data, size*sizeof(node_t));
+    memcpy(self->trie->list->data, data, size*sizeof(node_t));
     
     tmp1 = PyDict_GetItemString(pickle, "context");
     tmp = PyDict_GetItemString(tmp1, "entries");
     data = PyByteArray_AsString(tmp);
-    memcpy(data, self->trie->context.entries, (self->trie->order)*(sizeof(context_entry_t)));
+    memcpy(self->trie->context.entries, data, (self->trie->order)*(sizeof(context_entry_t)));
     tmp = PyDict_GetItemString(tmp1, "escape_counts");
     data = PyByteArray_AsString(tmp);
-    memcpy(data, self->trie->context.escape_counts, (self->trie->order)*(sizeof(unsigned long)));
+    memcpy(self->trie->context.escape_counts, data, (self->trie->order)*(sizeof(unsigned long)));
     tmp = PyDict_GetItemString(tmp1, "avg_escape_count_numerator");
     self->trie->context.avg_escape_count.numerator = PyInt_AsLong(tmp);
     tmp = PyDict_GetItemString(tmp1, "avg_escape_count_denominator");
     self->trie->context.avg_escape_count.denominator = PyInt_AsLong(tmp);
     
     Py_RETURN_NONE;
+}
+
+PyObject * Trie___reduce__(Trie *self) {
+    PyObject * tuple;
+    PyObject * argList;
+    PyObject * state;
+    
+    tuple = PyTuple_New(3);
+    
+    PyTuple_SetItem(tuple, 0, (PyObject *) &TrieType);
+    
+    argList = Py_BuildValue("(I)", self->trie->order);
+    PyTuple_SetItem(tuple, 1, argList);
+    
+    state = Trie___getstate__(self);
+    PyTuple_SetItem(tuple, 2, state);
+    
+    return tuple;
 }
 

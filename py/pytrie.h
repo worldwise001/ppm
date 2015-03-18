@@ -23,6 +23,7 @@ PyObject * Trie_clear_escapes(Trie *self);
 PyObject * Trie_add(Trie *self, PyObject *args, PyObject *keywds);
 PyObject * Trie___getstate__(Trie *self);
 PyObject * Trie___setstate__(Trie *self, PyObject *args, PyObject *keywds);
+PyObject * Trie___reduce__(Trie *self);
 
 // Python object members
 PyObject * Trie_get_probability_encoding(Trie *self, void *closure);
