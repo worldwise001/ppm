@@ -152,6 +152,7 @@ PyObject * Trie___reduce__(Trie *self) {
     
     tuple = PyTuple_New(3);
     
+    Py_INCREF((PyObject *) &TrieType);
     PyTuple_SetItem(tuple, 0, (PyObject *) &TrieType);
     
     argList = Py_BuildValue("(I)", self->trie->order);
