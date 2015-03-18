@@ -9,7 +9,7 @@
 struct __node_struct__;
 typedef struct __node_struct__ node_t;
 
-typedef int node_i;
+typedef unsigned int node_i;
 
 // Actual type definitions
 struct __node_struct__ {
