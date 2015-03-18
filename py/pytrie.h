@@ -8,6 +8,7 @@
 typedef struct {
     PyObject_HEAD
     trie_t * trie;
+    char __safe_for_unpickling__;
 } Trie;
 
 // Python object scaffolding

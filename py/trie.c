@@ -14,7 +14,8 @@ int Trie_init(Trie *self, PyObject *args, PyObject *kwds)
 {
     unsigned int order = 5;
     static char *kwlist[] = {"order", NULL};
-
+    
+    self->__safe_for_unpickling__ = 1;
     if (! PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &order)) {
         PyErr_Print();
         return -1;
@@ -34,6 +35,7 @@ void Trie_dealloc(Trie* self)
 }
 
 PyMemberDef Trie_members[] = {
+    {"__safe_for_unpickling__", T_BOOL, offsetof(Trie, __safe_for_unpickling__), 0, "__safe_for_unpickling__"},
     {NULL}  /* Sentinel */
 };
 
@@ -88,12 +90,12 @@ PyTypeObject TrieType = {
     0,                         /*tp_as_buffer*/
     Py_TPFLAGS_DEFAULT,        /*tp_flags*/
     "Trie objects",            /* tp_doc */
-    0,		               /* tp_traverse */
-    0,		               /* tp_clear */
-    0,		               /* tp_richcompare */
-    0,		               /* tp_weaklistoffset */
-    0,		               /* tp_iter */
-    0,		               /* tp_iternext */
+    0,                         /* tp_traverse */
+    0,                         /* tp_clear */
+    0,                         /* tp_richcompare */
+    0,                         /* tp_weaklistoffset */
+    0,                         /* tp_iter */
+    0,                         /* tp_iternext */
     Trie_methods,              /* tp_methods */
     Trie_members,              /* tp_members */
     Trie_getseters,            /* tp_getset */
