@@ -60,6 +60,8 @@ PyMethodDef Trie_methods[] = {
     {"clear_context", (PyCFunction)Trie_clear_context, METH_NOARGS, "Clear the context of the trie"},
     {"clear_escapes", (PyCFunction)Trie_clear_escapes, METH_NOARGS, "Clear trie escapes"},
     {"add", (PyCFunction)Trie_add, METH_VARARGS, "Add a character to the trie"},
+    {"__getstate__", (PyCFunction)Trie___getstate__, METH_NOARGS, "__getstate__"},
+    {"__setstate__", (PyCFunction)Trie___setstate__, METH_VARARGS, "__setstate__"},
     {NULL}  /* Sentinel */
 };
 
