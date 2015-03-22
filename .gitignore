@@ -4,3 +4,7 @@ bobicev
 ppm
 test
 data
+java/visualizer/bin
+java/visualizer/.classpath
+java/visualizer/.project
+java/visualizer/.settings/org.eclipse.jdt.core.prefs
